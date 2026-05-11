@@ -4,20 +4,7 @@ A cinematic, emotionally immersive wedding memory platform built for Vinay Kumar
 
 > **Two souls. One journey. Forever together.**
 
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js 15 (App Router), React 19, TypeScript |
-| Styling | Tailwind CSS, Framer Motion, GSAP |
-| Database | PostgreSQL via Supabase |
-| Auth | NextAuth.js v5 (Credentials) |
-| Storage | AWS S3 + Cloudflare CDN |
-| Media Processing | Express.js (Railway) + Sharp + BullMQ |
-| AI | OpenAI GPT-4 Vision |
-| Deployment | Vercel (frontend) + Railway (processor) |
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/itsjack2025-alt/wedding-platform&root-directory=apps/web)
 
 ---
 
@@ -31,58 +18,76 @@ A cinematic, emotionally immersive wedding memory platform built for Vinay Kumar
 
 ---
 
-## Getting Started
+## One-Click Deployment
 
-### Prerequisites
+### Step 1 — Supabase Database (5 minutes)
 
-- Node.js 20+
-- npm 10+ (or bun/pnpm)
-- Supabase account
-- AWS S3 bucket
-- Cloudflare account
+1. Create a free Supabase project at [supabase.com](https://supabase.com)
+   - Region: Singapore (`ap-southeast-1`) or Mumbai
+2. Go to **Project Settings → API** → copy:
+   - `Project URL`
+   - `anon public` key
+   - `service_role` secret
+3. Go to **SQL Editor** → run the migration from `supabase/migrations/001_initial_schema.sql`
 
-### 1. Clone & Install
+**Default admin login:** `admin@vinaykumarandsneha.com` / `wedding2026`
+
+### Step 2 — Deploy Frontend to Vercel (2 minutes)
+
+1. Go to: [vercel.com/new/clone](https://vercel.com/new/clone?repository-url=https://github.com/itsjack2025-alt/wedding-platform&root-directory=apps/web)
+2. Select `wedding-platform` repo, set root directory to `apps/web`
+3. Add these **Environment Variables** in Vercel:
+
+| Name | Value |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase service_role key |
+| `NEXTAUTH_SECRET` | Run: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+| `NEXTAUTH_URL` | Your Vercel deployment URL (after deploy) |
+| `NEXT_PUBLIC_APP_URL` | Same as NEXTAUTH_URL |
+
+4. Click **Deploy** — your site is live in ~2 minutes
+
+### Step 3 — Deploy Processor to Render (2 minutes)
+
+1. Go to [render.com](https://render.com) → Sign in with GitHub
+2. Click **New → Blueprint** → connect `wedding-platform` repo
+3. Select `render.yaml` from the root
+4. Add the same Supabase + AWS environment variables
+5. Click **Apply** — processor auto-deploys
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 15 (App Router), React 19, TypeScript |
+| Styling | Tailwind CSS, Framer Motion, GSAP |
+| Database | PostgreSQL via Supabase |
+| Auth | NextAuth.js v5 (Credentials) |
+| Storage | AWS S3 + Cloudflare CDN |
+| Media Processing | Express.js (Render) + Sharp + BullMQ |
+| AI | OpenAI GPT-4 Vision |
+| Deployment | Vercel (frontend) + Render (processor) |
+
+---
+
+## Local Development
 
 ```bash
-git clone <repo-url> wedding-platform
+git clone https://github.com/itsjack2025-alt/wedding-platform.git
 cd wedding-platform
-npm install
-```
+npm install --legacy-peer-deps
 
-### 2. Environment Variables
-
-```bash
+# Copy and fill env vars
 cp .env.example apps/web/.env.local
-# Fill in all required variables
-```
+# Edit apps/web/.env.local with your Supabase credentials
 
-Required variables:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `NEXTAUTH_SECRET` (generate with: openssl rand -base64 32)
-- `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`
-
-### 3. Database Setup
-
-```bash
-# Run migrations in Supabase SQL editor
-cat supabase/migrations/001_initial_schema.sql | pbcopy
-# Paste into Supabase SQL Editor and execute
-```
-
-Default admin credentials:
-- Email: `admin@vinaykumarandsneha.com`
-- Password: `wedding2026`
-
-### 4. Run Development
-
-```bash
-# Start all apps (web + processor)
 npm run dev
-
-# Or start just the web app
-cd apps/web && npm run dev
+# Frontend: http://localhost:3000
+# Processor: http://localhost:3001
 ```
 
 ---
@@ -93,29 +98,17 @@ cd apps/web && npm run dev
 wedding-platform/
 ├── apps/
 │   ├── web/                  # Next.js 15 app
-│   │   ├── src/
-│   │   │   ├── app/         # App Router pages & layouts
-│   │   │   │   ├── (public)/ # Guest-facing pages
-│   │   │   │   ├── (admin)/  # Admin dashboard
-│   │   │   │   ├── api/      # Route Handlers (BFF)
-│   │   │   │   └── login/    # Admin login
-│   │   │   ├── components/
-│   │   │   │   ├── branding/  # Logo system, theme
-│   │   │   │   ├── navigation/
-│   │   │   │   ├── sections/  # Hero, Timeline, etc.
-│   │   │   │   ├── media/     # Gallery, Lightbox
-│   │   │   │   ├── admin/     # Dashboard components
-│   │   │   │   └── ui/        # shadcn-style primitives
-│   │   │   └── lib/
-│   │   └── public/
-│   └── processor/            # Express.js media processor
-│       └── src/routes/       # image, video, ai routes
+│   │   └── src/
+│   │       ├── app/         # App Router pages & layouts
+│   │       ├── components/  # UI components
+│   │       └── lib/        # Supabase, auth, utils
+│   └── processor/           # Express.js media processor
+│       └── src/routes/      # image, video, ai routes
 ├── packages/
-│   ├── ui/                  # Shared UI components
-│   ├── constants/            # Shared types & theme
-│   └── tsconfig/            # Shared tsconfig bases
+│   ├── ui/                 # Shared UI components
+│   └── constants/          # Shared types & theme
 └── supabase/
-    └── migrations/           # SQL migrations
+    └── migrations/         # SQL migrations (run in Supabase)
 ```
 
 ---
@@ -132,55 +125,43 @@ wedding-platform/
 - QR code access for private galleries
 - Dark/light mode
 
-### Admin Dashboard
+### Admin Dashboard (`/dashboard`)
 - KPI analytics (views, visitors, blessings)
 - Drag-drop media uploader with progress
 - Event CRUD management
 - Blessing moderation queue
 - Collection/album builder
 - Branding panel (logo, colors)
-- SEO & settings
 
-### Branding System
-- 5 logo variants: Monogram, Crest, Signature, Wordmark, Floral
-- Gold/White/Dark/Outline/Minimal variants
-- CSS custom properties for theme tokens
-- Dynamic color theming per couple
+**Admin login:** `admin@vinaykumarandsneha.com` / `wedding2026`
 
 ---
 
-## Deployment
+## Branding System
 
-### Vercel (Frontend)
+- 5 logo variants: Monogram (VS), Crest, Signature, Wordmark, Floral
+- Gold/White/Dark/Outline/Minimal variants
+- CSS custom properties for theme tokens
+- Royal dark theme: Crimson (#c41e3a) + Gold (#d4af37)
 
-1. Connect GitHub repo to Vercel
-2. Set environment variables
-3. Deploy — ISR enabled automatically
+---
 
-### Railway (Processor)
+## Customization
 
-1. Create new Railway project
-2. Connect GitHub repo
-3. Set environment variables
-4. Deploy — `npm start` command
+### Change Couple Names
+Update `wedding_config` table in Supabase.
 
-### Supabase
+### Change Wedding Dates
+Update the `events` table in Supabase with your dates.
 
-1. Create project at supabase.com
-2. Run migrations in SQL Editor
-3. Enable Row Level Security
+### Add Events
+```sql
+INSERT INTO events (wedding_config_id, slug, name, event_type, start_time, venue_name)
+VALUES ('00000000-0000-0000-0000-000000000001', 'my-event', 'My Event', 'other', '2026-05-10T10:00:00+05:30', 'Venue Name');
+```
 
-### AWS S3
-
-1. Create two buckets (private + public)
-2. Configure CORS on public bucket
-3. Set up IAM credentials
-
-### Cloudflare CDN
-
-1. Add custom domain
-2. Configure cache rules
-3. Set up R2 for media delivery
+### Customize Theme
+Edit `packages/constants/src/theme.ts` for preset themes, or use the admin branding panel.
 
 ---
 
@@ -190,32 +171,11 @@ wedding-platform/
 |---|---|---|
 | `/api/media` | GET | List media (paginated, filterable) |
 | `/api/media` | POST | Initiate media upload |
-| `/api/media` | PATCH | Update media metadata |
 | `/api/blessings` | GET | List approved blessings |
 | `/api/blessings` | POST | Submit a blessing |
-| `/api/analytics` | GET | Get analytics summary |
+| `/api/analytics` | GET | Analytics summary (admin) |
 | `/api/analytics` | POST | Track page/media view |
 | `/api/auth/[...nextauth]` | GET/POST | NextAuth handlers |
-
----
-
-## Customization
-
-### Change Couple Names
-
-Update `wedding_config` table in Supabase, or use the admin branding panel.
-
-### Change Wedding Dates
-
-Update `wedding_config.wedding_date` or the `events` table.
-
-### Add Events
-
-Insert into `events` table with the appropriate `event_type`.
-
-### Customize Theme
-
-Edit `packages/constants/src/theme.ts` for preset themes, or use the admin branding panel for live customization.
 
 ---
 
