@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "workspaces": [
+    {
+      "root": "apps/web",
+      "name": "web",
+      "slug": "wedding-platform"
+    }
+  ]
+}

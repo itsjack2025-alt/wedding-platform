@@ -1,0 +1,45 @@
+# ============================================================
+# Wedding Platform — Render Blueprint
+# Deploy with: render blueprint create
+# ============================================================
+# Services:
+#   1. processor  — Express.js media processor (Web Service)
+# ============================================================
+
+services:
+  - type: web
+    name: wedding-processor
+    env: node
+    region: singapore
+    plan: free
+    rootDir: apps/processor
+    buildCommand: npm install --legacy-peer-deps && npm run build
+    startCommand: node dist/index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      # Supabase
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      # AWS S3
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_REGION
+        value: us-east-1
+      - key: AWS_S3_BUCKET_PRIVATE
+        value: wedding-raw-production
+      - key: AWS_S3_BUCKET_PUBLIC
+        value: wedding-processed-production
+      # Redis (Upstash free tier recommended)
+      - key: REDIS_URL
+        sync: false
+      # OpenAI (optional — for AI features)
+      - key: OPENAI_API_KEY
+        sync: false

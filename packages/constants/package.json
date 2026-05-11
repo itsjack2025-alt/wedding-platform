@@ -1,0 +1,10 @@
+{
+  "name": "@wedding/constants",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    "./types": "./src/types.ts",
+    "./theme": "./src/theme.ts",
+    "./events": "./src/events.ts"
+  }
+}

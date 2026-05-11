@@ -1,0 +1,52 @@
+# ============================================================
+# Wedding Platform — Processor Service Dockerfile
+# ============================================================
+# Builds: docker build -f Dockerfile.processor -t wedding-processor .
+# Runs:   docker run -p 3001:3001 --env-file apps/web/.env.production wedding-processor
+# ============================================================
+
+FROM node:20-alpine AS base
+
+# Install build dependencies for sharp
+RUN apk add --no-cache python3 make g++ vips-dev
+
+# --- Dependencies stage ---
+FROM base AS deps
+WORKDIR /app
+
+COPY package.json packages/processor/package.json apps/processor/package.json* ./
+RUN npm install --legacy-peer-deps
+
+# --- Builder stage ---
+FROM deps AS builder
+WORKDIR /app
+
+COPY . .
+
+# Build processor TypeScript
+RUN npm run build --filter=@wedding/processor
+
+# --- Production stage ---
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=3001
+
+# Create non-root user for security
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Copy built artifact
+COPY --from=builder --chown=nextjs:nodejs /app/apps/processor/dist ./dist
+COPY --from=builder --chown=nextjs:nodejs /app/apps/processor/package.json ./
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+
+USER nextjs
+
+EXPOSE 3001
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget -qO- http://localhost:3001/health || exit 1
+
+CMD ["node", "dist/index.js"]
